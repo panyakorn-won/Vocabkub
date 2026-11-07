@@ -732,12 +732,28 @@
             document.getElementById('quizQuestionWord').innerText = current.meaning;
             document.getElementById('quizQuestionPhonetic').innerText = `[ ${current.pos} ]`;
 
-            // สร้างตัวเลือก 4 ช้อยส์เป็นคำศัพท์ภาษาอังกฤษ (English Words)
+            // สร้างตัวเลือก 4 ช้อยส์เป็นคำศัพท์ภาษาอังกฤษ โดยดึงจากคำจริงในคลัง หรือในชุดเดียวกัน (หลีกเลี่ยง word_xxxx)
             const choices = [current.word];
+            
+            // กรองเฉพาะคำศัพท์จริงที่ไม่มีคำว่า word_
+            const validVocabPool = vocabDatabase.filter(w => w.word && !w.word.startsWith('word_'));
+            // รวมคำในชุดบทเรียนปัจจุบันด้วย
+            const candidatePool = validVocabPool.length >= 4 ? validVocabPool : quizState.setWords;
+
+            let maxTries = 100;
+            while (choices.length < 4 && maxTries > 0) {
+                maxTries--;
+                const randomItem = candidatePool[Math.floor(Math.random() * candidatePool.length)];
+                if (randomItem && !choices.includes(randomItem.word)) {
+                    choices.push(randomItem.word);
+                }
+            }
+
+            // ถ้ายอดตัวเลือกยังไม่ครบ 4 ให้ดึงจากคลังคำศัพท์ทั้งหมด
             while (choices.length < 4) {
-                const randomWord = vocabDatabase[Math.floor(Math.random() * vocabDatabase.length)];
-                if (!choices.includes(randomWord.word)) {
-                    choices.push(randomWord.word);
+                const randomItem = vocabDatabase[Math.floor(Math.random() * vocabDatabase.length)];
+                if (randomItem && !choices.includes(randomItem.word)) {
+                    choices.push(randomItem.word);
                 }
             }
             choices.sort(() => Math.random() - 0.5);
